@@ -128,20 +128,21 @@ impresion:
     int 21h
     
 
+mov bx, 0
 mov dx, offset saltoline ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
     int 21h
 
-mov dx, offset insertar ; saca a pantalla el insertar
+mov dx, offset insertar ; saca a pantalla el msj1
 mov ah, 9 ; escribir cadena 
 int 21h 
   
 mov ah, 1 ;entrada estandar de caracter
-int 21h 
+int 21h
 
-mov [300h], al
-mov bx, 0 
-mov cl, [300h]   
+
+
+mov ah, 0h   
 sub al, 30h
 
 
@@ -158,4 +159,4 @@ jmp impresion
 insertar db "Numero de casilla a insertar simbolo:  $"    
 saltoline db 0Dh,0Ah, "$" 
 
-int 20h 
+int 20h  
