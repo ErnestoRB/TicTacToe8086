@@ -47,7 +47,6 @@ tablero: ;se despliega el tablero para jugar
     mov bl, 1111b
     mov bh, 0
     
-    
     mov dl, 25h
     mov ah, 2h
     int 10h 
@@ -115,12 +114,11 @@ tablero: ;se despliega el tablero para jugar
     
     inc dh 
     
-    dec VUELTAS ;El gato imprime un patron dos veces para ahorrar lienas de codigo
+    dec VUELTAS ;El gato imprime un patron dos veces para ahorrar lineas de codigo
     
     cmp VUELTAS, 0
     jne tablero 
    
-    
     mov dl, 25h ;imprime la parte restante del talblero
     mov ah, 2h
     int 10h 
@@ -154,8 +152,7 @@ insertar:
     int 21h
      
     jmp casilla ;cambiar a validacion de ganador, por ahora es solo un bucle infinito 
-               
-                                       
+                                                     
 casilla:
     cmp al, '1'
     je casilla1
@@ -233,7 +230,8 @@ casilla3:
     int 10h
     jmp final
         
-casilla4: 
+casilla4:
+
     mov dh, 4h
     mov dl, 23h
     mov ah, 2h
@@ -271,6 +269,7 @@ casilla6:
     jmp final
     
 casilla7: 
+
     mov dh, 6h
     mov dl, 23h
     mov ah, 2h
@@ -296,6 +295,7 @@ casilla8:
     jmp final
                
 casilla9:
+
     mov dh, 6h
     mov dl, 29h
     mov ah, 2h
