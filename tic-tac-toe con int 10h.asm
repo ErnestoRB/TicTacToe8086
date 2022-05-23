@@ -1,7 +1,7 @@
 org 100h
 
 TIPO db 0 ;aqui se guardara el simbolo a jugar O o X
-VUELTAS dw 2h  
+VUELTAS dw 2h 
  
 seleccion:
 
@@ -16,23 +16,28 @@ seleccion:
     je asignarX
 
     cmp al, '2'
-    je asignarO
+    je asignarO    
     
     mov dx, offset saltoline ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
-    int 21h 
+    int 21h   
+    
+    mov dx, offset select      
+    mov ah, 9
+    int 21h  
 
-jmp seleccion
-
+jmp seleccion    
     asignarX:
         mov TIPO, 58h ;asignamos la X a la directiva
         mov dh, 2h    ; posicionamos el cursor en la columna correspondiente
+        call    clear_screen
         
         jmp tablero
         
     asignarO:
         mov TIPO, 4Fh ;asignamos el O a la directiva
         mov dh, 2h
+        call    clear_screen 
         
         jmp tablero
         
@@ -145,7 +150,7 @@ insertar:
     int 21h
     
     mov dx, offset filas      
-    mov ah, 9
+    mov ah, 9  
     int 21h
 
     mov ah, 1
@@ -185,7 +190,8 @@ casilla:
         mov dh, 6h
         mov dl, 0h
         mov ah, 2h
-        int 10h  
+        int 10h 
+         
         
     jmp insertar
     
@@ -308,6 +314,15 @@ casilla9:
     jmp final
                
 saltoline db 0Dh,0Ah, "$"
-filas db "Inserta la casilla: $"
+filas db "Inserta la casilla: $"       
+
+clear_screen:       ; Limpia la pantalla
+    mov     ah, 0fh
+    int     10h   
+    
+    mov     ah, 0
+    int     10h
+    
+    ret              
 
 int 20h 
