@@ -4,11 +4,7 @@ TIPO db 0 ;aqui se guardara el simbolo a jugar O o X
 VUELTAS dw 2h 
  
 seleccion:
-
-    ;mov dx, offset select ;Arreglar, imprime basura     
-    ;mov ah, 9
-    ;int 21h
-    
+   
     mov ah, 1 ; X = 1, O = 2
     int 21h
        
@@ -26,7 +22,8 @@ seleccion:
     mov ah, 9
     int 21h  
 
-jmp seleccion    
+jmp seleccion 
+   
     asignarX:
         mov TIPO, 58h ;asignamos la X a la directiva
         mov dh, 2h    ; posicionamos el cursor en la columna correspondiente
@@ -159,6 +156,7 @@ insertar:
     jmp casilla ;cambiar a validacion de ganador, por ahora es solo un bucle infinito 
                                                      
 casilla:
+
     cmp al, '1'
     je casilla1
        
@@ -317,11 +315,11 @@ saltoline db 0Dh,0Ah, "$"
 filas db "Inserta la casilla: $"       
 
 clear_screen:       ; Limpia la pantalla
-    mov     ah, 0fh
-    int     10h   
+    mov ah, 0fh
+    int 10h   
     
-    mov     ah, 0
-    int     10h
+    mov ah, 0
+    int 10h
     
     ret              
 
