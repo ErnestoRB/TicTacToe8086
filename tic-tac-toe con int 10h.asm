@@ -1,9 +1,16 @@
 org 100h
 
-TIPO db 0 ;aqui se guardara el simbolo a jugar O o X
-VUELTAS dw 2h 
+TIPO db 0h ;aqui se guardara el simbolo a jugar O o X
+TIPO_CPU db 0h
+PONER db 0h
+VUELTAS dw 2h
+TURNO db 1h 
  
 seleccion:
+
+    mov dx, offset select      
+    mov ah, 9
+    int 21h
    
     mov ah, 1 ; X = 1, O = 2
     int 21h
@@ -17,15 +24,13 @@ seleccion:
     mov dx, offset saltoline ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
     int 21h   
-    
-    mov dx, offset select      
-    mov ah, 9
-    int 21h  
+      
 
 jmp seleccion 
    
     asignarX:
         mov TIPO, 58h ;asignamos la X a la directiva
+        mov TIPO_CPU, 4Fh
         mov dh, 2h    ; posicionamos el cursor en la columna correspondiente
         call    clear_screen
         
@@ -33,6 +38,7 @@ jmp seleccion
         
     asignarO:
         mov TIPO, 4Fh ;asignamos el O a la directiva
+        mov TIPO_CPU, 58h
         mov dh, 2h
         call    clear_screen 
         
@@ -121,7 +127,7 @@ tablero: ;se despliega el tablero para jugar
     cmp VUELTAS, 0
     jne tablero 
    
-    mov dl, 25h ;imprime la parte restante del talblero
+    mov dl, 25h ;imprime la parte restante del tablero
     mov ah, 2h
     int 10h 
 
@@ -142,6 +148,9 @@ tablero: ;se despliega el tablero para jugar
     
 insertar:
 
+    cmp TURNO, 1h
+    jne bot
+
     mov dx, offset saltoline ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
     int 21h
@@ -152,6 +161,8 @@ insertar:
 
     mov ah, 1
     int 21h
+    
+    mov TURNO, 0 ;el siguiente turno sera del cpu
      
     jmp casilla ;cambiar a validacion de ganador, por ahora es solo un bucle infinito 
                                                      
@@ -189,20 +200,21 @@ casilla:
         mov dl, 0h
         mov ah, 2h
         int 10h 
-         
-        
+            
     jmp insertar
     
-;cada casilla tiene una coordenada diferente 
+;cada casilla tiene una coordenada diferente
+;"call simbolo" identifica si el siguiente simbolo a colocar es del cpu o del jugador 
     
 casilla1:
      
     mov dh, 2h
     mov dl, 23h
     mov ah, 2h
-    int 10h 
-
-    mov al, TIPO
+    int 10h
+    
+    call simbolo
+       
     mov cx, 1h
     mov ah, 9h
     int 10h
@@ -215,7 +227,8 @@ casilla2:
     mov ah, 2h
     int 10h 
 
-    mov al, TIPO
+    call simbolo
+    
     mov cx, 1h
     mov ah, 9h
     int 10h
@@ -228,7 +241,8 @@ casilla3:
     mov ah, 2h
     int 10h 
 
-    mov al, TIPO
+    call simbolo
+    
     mov cx, 1h
     mov ah, 9h
     int 10h
@@ -241,7 +255,8 @@ casilla4:
     mov ah, 2h
     int 10h 
 
-    mov al, TIPO
+    call simbolo
+    
     mov cx, 1h
     mov ah, 9h
     int 10h
@@ -254,19 +269,22 @@ casilla5:
     mov ah, 2h
     int 10h 
 
-    mov al, TIPO
+    call simbolo
+    
     mov cx, 1h
     mov ah, 9h
     int 10h
     jmp final
                
 casilla6:
+
     mov dh, 4h
     mov dl, 29h
     mov ah, 2h
     int 10h 
 
-    mov al, TIPO
+    call simbolo
+    
     mov cx, 1h
     mov ah, 9h
     int 10h
@@ -279,7 +297,8 @@ casilla7:
     mov ah, 2h
     int 10h 
 
-    mov al, TIPO
+    call simbolo
+    
     mov cx, 1h
     mov ah, 9h
     int 10h
@@ -292,7 +311,8 @@ casilla8:
     mov ah, 2h
     int 10h 
 
-    mov al, TIPO
+    call simbolo
+    
     mov cx, 1h
     mov ah, 9h
     int 10h
@@ -305,22 +325,53 @@ casilla9:
     mov ah, 2h
     int 10h 
 
-    mov al, TIPO
+    call simbolo
+    
     mov cx, 1h
     mov ah, 9h
     int 10h
     jmp final
                
 saltoline db 0Dh,0Ah, "$"
-filas db "Inserta la casilla: $"       
+filas db "Inserta la casilla: $"
 
-clear_screen:       ; Limpia la pantalla
+simbolo: ;alterna entre jugador y cpu en base al turno
+    
+    cmp TURNO, 0
+    je turno_cpu
+        mov al, TIPO_CPU
+        ret
+    
+    turno_cpu:
+        mov al, TIPO
+        ret 
+
+bot: 
+    
+    mov TURNO, 1 ;el siguiente turno sera del jugador
+    call random
+    jmp insertar
+
+
+random: ;toma el los milisegundos de la hora y toma el primer digito
+    
+    mov ah, 2Ch
+    int 21h
+    xor ax, ax
+    mov dh, 00h
+    shr dl, 4h
+    mov al, dl
+    add al, 30h
+    jmp casilla
+    ret
+    
+       
+clear_screen: ; Limpia la pantalla
+       
     mov ah, 0fh
     int 10h   
-    
     mov ah, 0
     int 10h
-    
     ret              
 
 int 20h 
