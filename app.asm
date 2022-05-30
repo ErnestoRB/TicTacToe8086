@@ -1,13 +1,8 @@
 org 100h
 
-TIPO db 0h ;aqui se guardara el simbolo a jugar O o X
-TIPO_CPU db 0h
-PONER db 0h
-VUELTAS dw 2h
-TURNO db 1h 
+
  
 seleccion:
-
     mov dx, offset select      
     mov ah, 9
     int 21h
@@ -24,32 +19,30 @@ seleccion:
     mov dx, offset saltoline ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
     int 21h   
-      
-
 jmp seleccion 
    
-    asignarX:
-        mov TIPO, 58h ;asignamos la X a la directiva
-        mov TIPO_CPU, 4Fh
-        mov dh, 2h    ; posicionamos el cursor en la columna correspondiente
-        call    clear_screen
+asignarX:
+    mov TIPO, 'X' ; jugador escogió 'X' como su simbolo
+    mov TIPO_CPU, 'O' ; por lo tanto el bot es 'O'
+    mov dh, 2h    ; posicionamos el cursor en la columna correspondiente
+    call    clear_screen
+    
+    jmp tablero
+    
+asignarO:
+    mov TIPO, 4Fh ; asignamos el O a la directiva
+    mov TIPO_CPU, 58h
+    mov dh, 2h
+    call    clear_screen 
+    
+    jmp tablero
         
-        jmp tablero
-        
-    asignarO:
-        mov TIPO, 4Fh ;asignamos el O a la directiva
-        mov TIPO_CPU, 58h
-        mov dh, 2h
-        call    clear_screen 
-        
-        jmp tablero
-        
-select db "Simbolo a utilizar: X = 1, O = 2: $"
-  
-tablero: ;se despliega el tablero para jugar
 
-    ;dh mueve el cursor por columnas en la int 10h
-    ;dl mueve el cursor por filas en la int 10h
+  
+tablero: ;se despliega el tablero para jugar (separadores)
+
+    ;dh mueve el cursor por filas (horizontal) en la int 10h
+    ;dl mueve el cursor por columnas (vertical) en la int 10h
     
     mov al, 0 
     mov bl, 1111b
@@ -59,7 +52,7 @@ tablero: ;se despliega el tablero para jugar
     mov ah, 2h
     int 10h 
 
-    mov al, 186 ;caracteres ascii en decimal del tablero del gato
+    mov al, 186
     mov cx, 1h
     mov ah, 9h
     int 10h
@@ -73,9 +66,9 @@ tablero: ;se despliega el tablero para jugar
     mov ah, 9h
     int 10h 
     
-    inc dh ; columna
+    inc dh ; cambiar fila (vertical)
     
-    mov dl, 23h ; filas
+    mov dl, 23h ; columna
     mov ah, 2h
     int 10h
     
@@ -84,7 +77,7 @@ tablero: ;se despliega el tablero para jugar
     mov ah, 9h
     int 10h
     
-    add dl, 2h
+    add dl, 2h ; cambiar columna
     mov ah, 2h
     int 10h
     
@@ -120,7 +113,7 @@ tablero: ;se despliega el tablero para jugar
     mov ah, 9h
     int 10h
     
-    inc dh 
+    inc dh ; cambiar fila
     
     dec VUELTAS ;El gato imprime un patron dos veces para ahorrar lineas de codigo
     
@@ -195,7 +188,7 @@ casilla:
     cmp al, '9'
     je casilla9
     
-    final: ;se reposiciona el cursor para volver a preguntar por el numero de casilla a insertar
+final: ;se reposiciona el cursor para volver a preguntar por el numero de casilla a insertar
         mov dh, 6h
         mov dl, 0h
         mov ah, 2h
@@ -212,12 +205,9 @@ casilla1:
     mov dl, 23h
     mov ah, 2h
     int 10h
-    
-    call simbolo
-       
-    mov cx, 1h
-    mov ah, 9h
-    int 10h
+    sub al, 48 ; ajuste ASCII -> binario posicional
+    call es_casilla_libre
+    je imprimir
     jmp final  
                   
 casilla2: 
@@ -226,13 +216,10 @@ casilla2:
     mov dl, 26h
     mov ah, 2h
     int 10h 
-
-    call simbolo
-    
-    mov cx, 1h
-    mov ah, 9h
-    int 10h
-    jmp final
+    sub al, 48
+    call es_casilla_libre
+    je imprimir
+    jmp final  
                 
 casilla3:
            
@@ -240,13 +227,10 @@ casilla3:
     mov dl, 29h
     mov ah, 2h
     int 10h 
-
-    call simbolo
-    
-    mov cx, 1h
-    mov ah, 9h
-    int 10h
-    jmp final
+    sub al, 48
+    call es_casilla_libre
+    je imprimir
+    jmp final  
         
 casilla4:
 
@@ -254,12 +238,9 @@ casilla4:
     mov dl, 23h
     mov ah, 2h
     int 10h 
-
-    call simbolo
-    
-    mov cx, 1h
-    mov ah, 9h
-    int 10h
+    sub al, 48
+    call es_casilla_libre
+    je imprimir
     jmp final  
                    
 casilla5:
@@ -268,13 +249,10 @@ casilla5:
     mov dl, 26h
     mov ah, 2h
     int 10h 
-
-    call simbolo
-    
-    mov cx, 1h
-    mov ah, 9h
-    int 10h
-    jmp final
+    sub al, 48
+    call es_casilla_libre
+    je imprimir
+    jmp final  
                
 casilla6:
 
@@ -282,13 +260,10 @@ casilla6:
     mov dl, 29h
     mov ah, 2h
     int 10h 
-
-    call simbolo
-    
-    mov cx, 1h
-    mov ah, 9h
-    int 10h
-    jmp final
+    sub al, 48
+    call es_casilla_libre
+    je imprimir
+    jmp final  
     
 casilla7: 
 
@@ -296,12 +271,9 @@ casilla7:
     mov dl, 23h
     mov ah, 2h
     int 10h 
-
-    call simbolo
-    
-    mov cx, 1h
-    mov ah, 9h
-    int 10h
+    sub al, 48
+    call es_casilla_libre
+    je imprimir
     jmp final  
                    
 casilla8:
@@ -310,44 +282,43 @@ casilla8:
     mov dl, 26h
     mov ah, 2h
     int 10h 
-
-    call simbolo
-    
-    mov cx, 1h
-    mov ah, 9h
-    int 10h
-    jmp final
+    sub al, 48
+    call es_casilla_libre
+    je imprimir
+    jmp final  
                
 casilla9:
 
     mov dh, 6h
     mov dl, 29h
     mov ah, 2h
-    int 10h 
-
+    int 10h      
+    sub al, 48
+    call es_casilla_libre
+    je imprimir
+    jmp final  
+               
+imprimir:
     call simbolo
-    
+    call registrar_casilla      
     mov cx, 1h
     mov ah, 9h
+    MOV BX, 0Fh 
     int 10h
     jmp final
-               
-saltoline db 0Dh,0Ah, "$"
-filas db "Inserta la casilla: $"
 
-simbolo: ;alterna entre jugador y cpu en base al turno
+simbolo: ;alterna el símbolo a imprimir en función al turno
     
-    cmp TURNO, 0
+    cmp TURNO, 0    
+    mov AH, AL
     je turno_cpu
         mov al, TIPO_CPU
         ret
-    
     turno_cpu:
         mov al, TIPO
         ret 
 
 bot: 
-    
     mov TURNO, 1 ;el siguiente turno sera del jugador
     call random
     jmp insertar
@@ -374,4 +345,37 @@ clear_screen: ; Limpia la pantalla
     int 10h
     ret              
 
-int 20h 
+es_casilla_libre:
+    ; se asume que el numero de casilla esta en AL
+    mov BX, offset CASILLAS ; inicio del arreglo
+    mov AH, 0
+    mov SI, AX
+    DEC SI ; el usuario usa (1-9) pero para desplazamiento es (0-8)
+    mov DL, 0
+    cmp [BX + SI], DL   ; si en el arreglo hay un 0 entonces si est� libre
+    ret ; debe seguir instrucción de salto
+    
+registrar_casilla:
+    ; se asume que el numero de casilla esta en AH y el simbolo en AL
+    mov BX, offset CASILLAS ; inicio del arreglo
+    PUSH AX ; guardar valores originales    
+    XCHG AH, AL
+    mov AH, 0      
+    mov SI, AX               ; cargar desplazamiento     
+    DEC SI ; el usuario usa (1-9) pero para desplazamiento es (0-8)
+    POP AX
+    mov [BX + SI], AL ;registrar
+    ret
+     
+
+int 20h    
+ ; variables
+TIPO db 0h ;aqui se guardara el simbolo a jugar O o X
+TIPO_CPU db 0h
+PONER db 0h
+VUELTAS dw 2h
+TURNO db 1h 
+CASILLAS db 9 DUP(0) ; 0 significa libre    
+saltoline db 0Dh,0Ah, "$"
+filas db "Inserta la casilla: (1-9) $"     
+select db "Simbolo a utilizar: X = 1, O = 2: $"
