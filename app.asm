@@ -324,18 +324,18 @@ bot:
     jmp insertar
 
 
-random: ;toma el los milisegundos de la hora y toma el primer digito
+random: ;toma los milisegundos de la hora y hace ajustes de ascii
     
     mov ah, 2Ch
     int 21h
     xor ax, ax
     mov dh, 00h
     add ax, dx
-    aaa ;hace un ajuste decimal del digito aleatorio              
+    aaa ; hace un ajuste a decimal del digito aleatorio              
     call es_casilla_libre
     jne random
     mov ah, 00h ; se descarta el digito mas alto al hacer una conversion a decimal
-    add al, 30h ; ajuste ascii del byte mas significativo
+    add al, 30h ; ajuste ascii del segundo digito del numero decimal
     jmp casilla
     ret
     
