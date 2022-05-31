@@ -331,8 +331,10 @@ random: ;toma el los milisegundos de la hora y toma el primer digito
     xor ax, ax
     mov dh, 00h
     shr dl, 4h
-    mov al, dl
-    add al, 30h
+    mov al, dl                
+    call es_casilla_libre
+    jne random
+    add al, 30h ; ajuste ascii
     jmp casilla
     ret
     
@@ -347,16 +349,21 @@ clear_screen: ; Limpia la pantalla
 
 es_casilla_libre:
     ; se asume que el numero de casilla esta en AL
+    PUSH BX
     mov BX, offset CASILLAS ; inicio del arreglo
     mov AH, 0
     mov SI, AX
-    DEC SI ; el usuario usa (1-9) pero para desplazamiento es (0-8)
+    DEC SI ; el usuario usa (1-9) pero para desplazamiento es (0-8)         
+    PUSH DX
     mov DL, 0
-    cmp [BX + SI], DL   ; si en el arreglo hay un 0 entonces si est· libre
+    cmp [BX + SI], DL   ; si en el arreglo hay un 0 entonces si est· libre   
+    POP DX                                          
+    POP BX
     ret ; debe seguir instrucci√≥n de salto
     
 registrar_casilla:
-    ; se asume que el numero de casilla esta en AH y el simbolo en AL
+    ; se asume que el numero de casilla esta en AH y el simbolo en AL    
+    PUSH BX
     mov BX, offset CASILLAS ; inicio del arreglo
     PUSH AX ; guardar valores originales    
     XCHG AH, AL
@@ -365,6 +372,7 @@ registrar_casilla:
     DEC SI ; el usuario usa (1-9) pero para desplazamiento es (0-8)
     POP AX
     mov [BX + SI], AL ;registrar
+    POP BX
     ret
      
 
