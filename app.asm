@@ -330,11 +330,12 @@ random: ;toma el los milisegundos de la hora y toma el primer digito
     int 21h
     xor ax, ax
     mov dh, 00h
-    shr dl, 4h
-    mov al, dl                
+    add ax, dx
+    aaa ;hace un ajuste decimal del digito aleatorio              
     call es_casilla_libre
     jne random
-    add al, 30h ; ajuste ascii
+    mov ah, 00h ; se descarta el digito mas alto al hacer una conversion a decimal
+    add al, 30h ; ajuste ascii del byte mas significativo
     jmp casilla
     ret
     
