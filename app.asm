@@ -1,7 +1,5 @@
 org 100h
 
-
- 
 seleccion:
     mov dx, offset select      
     mov ah, 9
@@ -19,14 +17,13 @@ seleccion:
     mov dx, offset saltoline ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
     int 21h   
-jmp seleccion 
+    jmp seleccion 
    
 asignarX:
     mov TIPO, 'X' ; jugador escogió 'X' como su simbolo
     mov TIPO_CPU, 'O' ; por lo tanto el bot es 'O'
     mov dh, 2h    ; posicionamos el cursor en la columna correspondiente
     call    clear_screen
-    
     jmp tablero
     
 asignarO:
@@ -34,11 +31,8 @@ asignarO:
     mov TIPO_CPU, 58h
     mov dh, 2h
     call    clear_screen 
-    
     jmp tablero
-        
 
-  
 tablero: ;se despliega el tablero para jugar (separadores)
 
     ;dh mueve el cursor por filas (horizontal) en la int 10h
@@ -141,7 +135,7 @@ tablero: ;se despliega el tablero para jugar (separadores)
     
 insertar:
 
-    cmp TURNO, 1h
+    cmp TURNO, 1h ; verificar si el turno es del jugador
     jne bot
 
     mov dx, offset saltoline ; saca a pantalla el salto de linea
@@ -153,48 +147,57 @@ insertar:
     int 21h
 
     mov ah, 1
-    int 21h
-    
-    mov TURNO, 0 ;el siguiente turno sera del cpu
-     
-    jmp casilla ;cambiar a validacion de ganador, por ahora es solo un bucle infinito 
+    int 21h  
+    sub al, 48 ; convertir ascii a numero
+    call es_casilla_libre
+    je casilla ; 
+    jmp final 
                                                      
 casilla:
 
-    cmp al, '1'
+    cmp al, 1
     je casilla1
        
-    cmp al, '2'
+    cmp al, 2
     je casilla2
     
-    cmp al, '3'
+    cmp al, 3
     je casilla3
     
-    cmp al, '4'
+    cmp al, 4
     je casilla4
     
-    cmp al, '5'
+    cmp al, 5
     je casilla5
     
-    cmp al, '6'
+    cmp al, 6
     je casilla6
     
-    cmp al, '7'
+    cmp al, 7
     je casilla7
     
-    cmp al, '8'
+    cmp al, 8
     je casilla8
     
-    cmp al, '9'
-    je casilla9
+    cmp al, 9
+    je casilla9     
     
-final: ;se reposiciona el cursor para volver a preguntar por el numero de casilla a insertar
+                 
+    
+alternar_turno:
+        cmp TURNO, 1
+        jne  TURNO_BOT
+        MOV TURNO, 0  
+        ret
+turno_bot: MOV TURNO, 1
+        ret
+    
+final: ;se reposiciona el cursor para volver a preguntar por el numero de casilla a insertar       
         mov dh, 6h
         mov dl, 0h
         mov ah, 2h
         int 10h 
-            
-    jmp insertar
+        jmp insertar
     
 ;cada casilla tiene una coordenada diferente
 ;"call simbolo" identifica si el siguiente simbolo a colocar es del cpu o del jugador 
@@ -205,10 +208,7 @@ casilla1:
     mov dl, 23h
     mov ah, 2h
     int 10h
-    sub al, 48 ; ajuste ASCII -> binario posicional
-    call es_casilla_libre
-    je imprimir
-    jmp final  
+    jmp imprimir
                   
 casilla2: 
 
@@ -216,10 +216,7 @@ casilla2:
     mov dl, 26h
     mov ah, 2h
     int 10h 
-    sub al, 48
-    call es_casilla_libre
-    je imprimir
-    jmp final  
+    jmp imprimir  
                 
 casilla3:
            
@@ -227,10 +224,7 @@ casilla3:
     mov dl, 29h
     mov ah, 2h
     int 10h 
-    sub al, 48
-    call es_casilla_libre
-    je imprimir
-    jmp final  
+    jmp imprimir  
         
 casilla4:
 
@@ -238,10 +232,7 @@ casilla4:
     mov dl, 23h
     mov ah, 2h
     int 10h 
-    sub al, 48
-    call es_casilla_libre
-    je imprimir
-    jmp final  
+    jmp imprimir  
                    
 casilla5:
 
@@ -249,10 +240,7 @@ casilla5:
     mov dl, 26h
     mov ah, 2h
     int 10h 
-    sub al, 48
-    call es_casilla_libre
-    je imprimir
-    jmp final  
+    jmp imprimir 
                
 casilla6:
 
@@ -260,10 +248,7 @@ casilla6:
     mov dl, 29h
     mov ah, 2h
     int 10h 
-    sub al, 48
-    call es_casilla_libre
-    je imprimir
-    jmp final  
+    jmp imprimir  
     
 casilla7: 
 
@@ -271,10 +256,7 @@ casilla7:
     mov dl, 23h
     mov ah, 2h
     int 10h 
-    sub al, 48
-    call es_casilla_libre
-    je imprimir
-    jmp final  
+    jmp imprimir  
                    
 casilla8:
 
@@ -282,10 +264,7 @@ casilla8:
     mov dl, 26h
     mov ah, 2h
     int 10h 
-    sub al, 48
-    call es_casilla_libre
-    je imprimir
-    jmp final  
+    jmp imprimir  
                
 casilla9:
 
@@ -293,18 +272,16 @@ casilla9:
     mov dl, 29h
     mov ah, 2h
     int 10h      
-    sub al, 48
-    call es_casilla_libre
-    je imprimir
-    jmp final  
+    jmp imprimir  
                
-imprimir:
+imprimir: ; no debe llamarse sin comprobar que sea casilla libre
     call simbolo
     call registrar_casilla      
     mov cx, 1h
     mov ah, 9h
     MOV BX, 0Fh 
-    int 10h
+    int 10h     
+    call alternar_turno
     jmp final
 
 simbolo: ;alterna el símbolo a imprimir en función al turno
@@ -319,7 +296,7 @@ simbolo: ;alterna el símbolo a imprimir en función al turno
         ret 
 
 bot: 
-    mov TURNO, 1 ;el siguiente turno sera del jugador
+    
     call random
     jmp insertar
 
@@ -335,7 +312,6 @@ random: ;toma los milisegundos de la hora y hace ajustes de ascii
     call es_casilla_libre
     jne random
     mov ah, 00h ; se descarta el digito mas alto al hacer una conversion a decimal
-    add al, 30h ; ajuste ascii del segundo digito del numero decimal
     jmp casilla
     ret
     
@@ -350,6 +326,10 @@ clear_screen: ; Limpia la pantalla
 
 es_casilla_libre:
     ; se asume que el numero de casilla esta en AL
+    CMP AL, 1
+    JB no_es_libre
+    CMP AL, 9
+    JA no_es_libre
     PUSH BX
     mov BX, offset CASILLAS ; inicio del arreglo
     mov AH, 0
@@ -360,7 +340,7 @@ es_casilla_libre:
     cmp [BX + SI], DL   ; si en el arreglo hay un 0 entonces si est� libre   
     POP DX                                          
     POP BX
-    ret ; debe seguir instrucción de salto
+no_es_libre:ret ; debe seguir instrucción de salto
     
 registrar_casilla:
     ; se asume que el numero de casilla esta en AH y el simbolo en AL    
