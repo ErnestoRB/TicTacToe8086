@@ -289,10 +289,10 @@ simbolo: ;alterna el símbolo a imprimir en función al turno
     cmp TURNO, 0    
     mov AH, AL
     je turno_cpu
-        mov al, TIPO_CPU
+        mov al, TIPO
         ret
     turno_cpu:
-        mov al, TIPO
+        mov al, TIPO_CPU
         ret 
 
 bot: 
