@@ -134,7 +134,7 @@ tablero: ;se despliega el tablero para jugar (separadores)
     
     
 insertar:
-
+    
     cmp TURNO, 1h ; verificar si el turno es del jugador
     jne bot
 
@@ -280,7 +280,8 @@ imprimir: ; no debe llamarse sin comprobar que sea casilla libre
     mov cx, 1h
     mov ah, 9h
     MOV BX, 0Fh 
-    int 10h     
+    int 10h                           
+    call comprobar_ganador
     call alternar_turno
     jmp final
 
@@ -317,11 +318,12 @@ random: ;toma los milisegundos de la hora y hace ajustes de ascii
     
        
 clear_screen: ; Limpia la pantalla
-       
+    push ax
     mov ah, 0fh
     int 10h   
     mov ah, 0
-    int 10h
+    int 10h     
+    pop ax
     ret              
 
 es_casilla_libre:
@@ -353,18 +355,128 @@ registrar_casilla:
     DEC SI ; el usuario usa (1-9) pero para desplazamiento es (0-8)
     POP AX
     mov [BX + SI], AL ;registrar
-    POP BX
+    POP BX       
+    PUSH CX
+    MOV CL, TIROS                         
+    INC CL
+    MOV TIROS, CL
+    POP CX
     ret
-     
+
+comprobar_ganador:                                   ; simbolo en AL         
+push cx                                                                   
+mov cx, 0    
+cmp casillas[0], al                     ;1
+    call sumar_coincidencia
+     cmp casillas[1], al  
+     call sumar_coincidencia
+     cmp casillas[2], al  
+     call sumar_coincidencia
+     cmp cx, 3
+     JE ganador       
+     mov cx, 0
+cmp casillas[3], al                   ;2
+    call sumar_coincidencia
+     cmp casillas[4], al  
+     call sumar_coincidencia
+     cmp casillas[5], al
+     call sumar_coincidencia
+     cmp cx, 3
+     JE ganador 
+     mov cx, 0
+cmp casillas[6], al                 ;3
+    call sumar_coincidencia
+     cmp casillas[7], al  
+     call sumar_coincidencia
+     cmp casillas[8], al
+     call sumar_coincidencia
+     cmp cx, 3
+     JE ganador    
+     mov cx, 0
+cmp casillas[0], al              ; 4
+    call sumar_coincidencia
+     cmp casillas[3], al  
+     call sumar_coincidencia
+     cmp casillas[6], al
+     call sumar_coincidencia
+     cmp cx, 3
+     JE ganador   
+     mov cx, 0
+cmp casillas[1], al            ;5
+    call sumar_coincidencia
+     cmp casillas[4], al  
+     call sumar_coincidencia
+     cmp casillas[7], al    
+     call sumar_coincidencia
+     cmp cx, 3
+     JE ganador   
+     mov cx, 0
+cmp casillas[2], al          ;6
+    call sumar_coincidencia
+     cmp casillas[5], al  
+     call sumar_coincidencia
+     cmp casillas[8], al    
+     call sumar_coincidencia
+     cmp cx, 3
+     JE ganador        
+     mov cx, 0
+cmp casillas[0], al       ; 7
+    call sumar_coincidencia
+     cmp casillas[4], al  
+     call sumar_coincidencia
+     cmp casillas[8], al    
+     call sumar_coincidencia
+     cmp cx, 3
+     JE ganador    
+     mov cx, 0
+cmp casillas[2], al    ;8
+    call sumar_coincidencia
+     cmp casillas[4], al  
+     call sumar_coincidencia
+     cmp casillas[6], al    
+     call sumar_coincidencia
+     cmp cx, 3
+     JE ganador        
+    CMP TIROS, 9
+    JE empate   
+pop CX
+ret
+ganador:              
+    call clear_screen                     
+    cmp al, tipo
+    jne ganador_cpu  
+    mov dx, offset ganaste ; saca a pantalla el salto de linea
+    mov ah, 9 ; escribir cadena 
+    int 21h          
+    int 20h
+    ganador_cpu: mov dx, offset perdiste ; saca a pantalla el salto de linea
+    mov ah, 9 ; escribir cadena 
+    int 21h
+    int 20h
+empate:
+    call clear_screen
+    mov dx, offset empataste ; saca a pantalla el salto de linea
+    mov ah, 9 ; escribir cadena 
+    int 21h
+    int 20h
+
+sumar_coincidencia:
+jne no_sumar
+inc cx
+no_sumar: ret     
 
 int 20h    
  ; variables
 TIPO db 0h ;aqui se guardara el simbolo a jugar O o X
-TIPO_CPU db 0h
+TIPO_CPU db 0h                                       
+TIROS db 0h
 PONER db 0h
 VUELTAS dw 2h
 TURNO db 1h 
 CASILLAS db 9 DUP(0) ; 0 significa libre    
 saltoline db 0Dh,0Ah, "$"
 filas db "Inserta la casilla: (1-9) $"     
+ganaste db "Ganaste!$"      
+perdiste db "Perdiste ):$"
+empataste db "Empate!$"                                    
 select db "Simbolo a utilizar: X = 1, O = 2: $"
