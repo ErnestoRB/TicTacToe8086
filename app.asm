@@ -1,19 +1,17 @@
 org 100h
 
-seleccion:
+seleccion: ; se encarga de escoger el simbolo
+; con el que quiere jugar
     mov dx, offset select      
     mov ah, 9
-    int 21h
-   
+    int 21h ; imprime cadena
     mov ah, 1 ; X = 1, O = 2
     int 21h
-       
     cmp al, '1'
     je asignarX
-
     cmp al, '2'
     je asignarO    
-    
+    ; en caso de no seleccionar una válida (1 o 2), entonces repetir 
     mov dx, offset saltoline ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
     int 21h   
@@ -27,162 +25,122 @@ asignarX:
     jmp tablero
     
 asignarO:
-    mov TIPO, 4Fh ; asignamos el O a la directiva
+    mov TIPO, 4Fh ; asignamos el O a la variable
     mov TIPO_CPU, 58h
     mov dh, 2h
     call    clear_screen 
     jmp tablero
 
 tablero: ;se despliega el tablero para jugar (separadores)
-
     ;dh mueve el cursor por filas (horizontal) en la int 10h
     ;dl mueve el cursor por columnas (vertical) en la int 10h
-    
     mov al, 0 
     mov bl, 1111b
     mov bh, 0
-    
     mov dl, 25h
     mov ah, 2h
     int 10h 
-
     mov al, 186
     mov cx, 1h
     mov ah, 9h
     int 10h
-    
     mov dl, 28h
     mov ah, 2h
     int 10h
-    
     mov al, 186
     mov cx, 1h
     mov ah, 9h
     int 10h 
-    
     inc dh ; cambiar fila (vertical)
-    
     mov dl, 23h ; columna
     mov ah, 2h
     int 10h
-    
     mov al, 205
     mov cx, 2h
     mov ah, 9h
     int 10h
-    
     add dl, 2h ; cambiar columna
     mov ah, 2h
     int 10h
-    
     mov al, 206
     mov cx, 1h
     mov ah, 9h
     int 10h
-    
     inc dl ; incrementar posicion del cursor
     mov ah, 2h
     int 10h
-    
     mov al, 205
     mov cx, 2h
     mov ah, 9h
     int 10h
-    
     add dl, 2h
     mov ah, 2h
     int 10h 
-    
     mov al, 206
     mov cx, 1h
     mov ah, 9h
     int 10h
-    
     add dl, 1h
     mov ah, 2h
     int 10h
-    
     mov al, 205
     mov cx, 2h
     mov ah, 9h
     int 10h
-    
     inc dh ; cambiar fila
-    
     dec VUELTAS ;El gato imprime un patron dos veces para ahorrar lineas de codigo
-    
     cmp VUELTAS, 0
     jne tablero 
-   
     mov dl, 25h ;imprime la parte restante del tablero
     mov ah, 2h
     int 10h 
-
     mov al, 186
     mov cx, 1h
     mov ah, 9h
     int 10h
-    
     mov dl, 28h
     mov ah, 2h
     int 10h
-    
     mov al, 186
     mov cx, 1h
     mov ah, 9h
     int 10h
     
-    
-insertar:
-    
+insertar: ; esta parte se encarga de la selección de casilla por parte del usuario
     cmp TURNO, 1h ; verificar si el turno es del jugador
-    jne bot
-
+    jne bot ; en caso de ser turno del bot, no pedirlo, si no generarlo
     mov dx, offset saltoline ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
     int 21h
-    
-    mov dx, offset filas      
+    mov dx, offset filas      ; muestra mensaje de seleccion
     mov ah, 9  
     int 21h
-
     mov ah, 1
     int 21h  
     sub al, 48 ; convertir ascii a numero
-    call es_casilla_libre
-    je casilla ; 
-    jmp final 
+    call es_casilla_libre ; comprobar que la casilla elegida sea libre
+    je casilla ; en caso de que si lo sea, ir a insertarla
+    jmp final ; en caso contrario, volver a preguntar
                                                      
 casilla:
-
     cmp al, 1
     je casilla1
-       
     cmp al, 2
     je casilla2
-    
     cmp al, 3
     je casilla3
-    
     cmp al, 4
     je casilla4
-    
     cmp al, 5
     je casilla5
-    
     cmp al, 6
     je casilla6
-    
     cmp al, 7
     je casilla7
-    
     cmp al, 8
     je casilla8
-    
     cmp al, 9
     je casilla9     
-    
-                 
     
 alternar_turno:
         cmp TURNO, 1
@@ -202,8 +160,7 @@ final: ;se reposiciona el cursor para volver a preguntar por el numero de casill
 ;cada casilla tiene una coordenada diferente
 ;"call simbolo" identifica si el siguiente simbolo a colocar es del cpu o del jugador 
     
-casilla1:
-     
+casilla1: ; todas las subrutinas casilla"N" lo que hacen es colocar el cursor en
     mov dh, 2h
     mov dl, 23h
     mov ah, 2h
@@ -211,15 +168,13 @@ casilla1:
     jmp imprimir
                   
 casilla2: 
-
     mov dh, 2h
     mov dl, 26h
     mov ah, 2h
     int 10h 
     jmp imprimir  
                 
-casilla3:
-           
+casilla3:  
     mov dh, 2h
     mov dl, 29h
     mov ah, 2h
@@ -227,7 +182,6 @@ casilla3:
     jmp imprimir  
         
 casilla4:
-
     mov dh, 4h
     mov dl, 23h
     mov ah, 2h
@@ -235,7 +189,6 @@ casilla4:
     jmp imprimir  
                    
 casilla5:
-
     mov dh, 4h
     mov dl, 26h
     mov ah, 2h
@@ -243,7 +196,6 @@ casilla5:
     jmp imprimir 
                
 casilla6:
-
     mov dh, 4h
     mov dl, 29h
     mov ah, 2h
@@ -251,7 +203,6 @@ casilla6:
     jmp imprimir  
     
 casilla7: 
-
     mov dh, 6h
     mov dl, 23h
     mov ah, 2h
@@ -259,7 +210,6 @@ casilla7:
     jmp imprimir  
                    
 casilla8:
-
     mov dh, 6h
     mov dl, 26h
     mov ah, 2h
@@ -267,7 +217,6 @@ casilla8:
     jmp imprimir  
                
 casilla9:
-
     mov dh, 6h
     mov dl, 29h
     mov ah, 2h
@@ -275,18 +224,17 @@ casilla9:
     jmp imprimir  
                
 imprimir: ; no debe llamarse sin comprobar que sea casilla libre
-    call simbolo
-    call registrar_casilla      
+    call simbolo ; obtiene el simbolo a imprimirse según el turno
+    call registrar_casilla ; registrar casilla para que no pueda ser sobreescrita
     mov cx, 1h
     mov ah, 9h
     MOV BX, 0Fh 
-    int 10h                           
-    call comprobar_ganador
-    call alternar_turno
-    jmp final
+    int 10h                           ; imprimir caracter
+    call comprobar_ganador ; comprobar si hubo ganador (o empate, en su defecto)
+    call alternar_turno ; alternar el turno al que sigue
+    jmp final ; se prepara para preguntar por otra casilla
 
 simbolo: ;alterna el símbolo a imprimir en función al turno
-    
     cmp TURNO, 0    
     mov AH, AL
     je turno_cpu
@@ -297,15 +245,13 @@ simbolo: ;alterna el símbolo a imprimir en función al turno
         ret 
 
 bot: 
-    
     call random
     jmp insertar
 
 
 random: ;toma los milisegundos de la hora y hace ajustes de ascii
-    
     mov ah, 2Ch
-    int 21h
+    int 21h ; llamada al tiempo del sistema MS-DOS
     xor ax, ax
     mov dh, 00h
     add ax, dx
@@ -332,14 +278,15 @@ es_casilla_libre:
     JB no_es_libre
     CMP AL, 9
     JA no_es_libre
+    ; las cuatro lineas de arriba comprueban que sea una casilla valida (entre 1 y 9)
     PUSH BX
     mov BX, offset CASILLAS ; inicio del arreglo
     mov AH, 0
-    mov SI, AX
+    mov SI, AX ; desplazamiento del arreglo
     DEC SI ; el usuario usa (1-9) pero para desplazamiento es (0-8)         
     PUSH DX
     mov DL, 0
-    cmp [BX + SI], DL   ; si en el arreglo hay un 0 entonces si est� libre   
+    cmp [BX + SI], DL   ; si en el arreglo hay un 0 entonces si est� libre   
     POP DX                                          
     POP BX
 no_es_libre:ret ; debe seguir instrucción de salto
@@ -366,6 +313,8 @@ registrar_casilla:
 comprobar_ganador:                                   ; simbolo en AL         
 push cx                                                                   
 mov cx, 0    
+; a partir de aqui se consulta si alguno de los 8 patrones para ganar se cumplen para
+; el jugador que tiro
 cmp casillas[0], al                     ;1
     call sumar_coincidencia
      cmp casillas[1], al  
