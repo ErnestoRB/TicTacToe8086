@@ -1,7 +1,9 @@
 org 100h
 
 seleccion: ; se encarga de escoger el simbolo
-; con el que quiere jugar
+; con el que quiere jugar         
+    call restablecer_gato 
+    call clear_screen
     mov dx, offset select      
     mov ah, 9
     int 21h ; imprime cadena
@@ -9,8 +11,10 @@ seleccion: ; se encarga de escoger el simbolo
     int 21h
     cmp al, '1'
     je asignarX
-    cmp al, '2'
-    je asignarO    
+    cmp al, '2'   
+    je asignarO 
+    cmp al, 'E'
+    je salir
     ; en caso de no seleccionar una válida (1 o 2), entonces repetir 
     mov dx, offset saltoline ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
@@ -397,24 +401,53 @@ ganador:
     mov dx, offset ganaste ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
     int 21h          
-    int 20h
+    jmp tecla_para_continuar
     ganador_cpu: mov dx, offset perdiste ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
     int 21h
-    int 20h
+    jmp tecla_para_continuar
 empate:
     call clear_screen
     mov dx, offset empataste ; saca a pantalla el salto de linea
     mov ah, 9 ; escribir cadena 
     int 21h
-    int 20h
+    jmp tecla_para_continuar              
+    
+tecla_para_continuar:     
+mov dx, offset saltoline 
+mov ah, 9  
+int 21h
+mov dx, offset continuar 
+int 21h
+mov ah, 7
+int 21h
+je seleccion                  
+
+restablecer_gato:
+PUSH BX
+mov BX, offset CASILLAS ; inicio del arreglo   
+mov CX, 8
+limpiar_casilla: mov SI, CX               ; cargar desplazamiento     
+mov [BX + SI], 0
+LOOP limpiar_casilla
+MOV [BX], 0
+POP BX       
+MOV TIROS, 0
+ret
+
 
 sumar_coincidencia:
 jne no_sumar
 inc cx
 no_sumar: ret     
 
+salir: 
+call clear_screen        
+mov dx, offset agradecimientos
+mov ah, 9
+int 21h
 int 20h    
+
  ; variables
 TIPO db 0h ;aqui se guardara el simbolo a jugar O o X
 TIPO_CPU db 0h                                       
@@ -427,5 +460,7 @@ saltoline db 0Dh,0Ah, "$"
 filas db "Inserta la casilla: (1-9) $"     
 ganaste db "Ganaste!$"      
 perdiste db "Perdiste ):$"
-empataste db "Empate!$"                                    
-select db "Simbolo a utilizar: X = 1, O = 2: $"
+empataste db "Empate!$"                    
+agradecimientos db "Gracias!$"              
+continuar db "Presiona una tecla para continuar$"                
+select db "Simbolo a utilizar: X = 1, O = 2 (o Salir = E): $"
